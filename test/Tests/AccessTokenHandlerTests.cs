@@ -7,7 +7,7 @@ using RichardSzalay.MockHttp;
 
 namespace Duende.AccessTokenManagement.Tests;
 
-public class AccessTokenHandlerTests 
+public class AccessTokenHandlerTests
 {
     TestDPoPProofService _testDPoPProofService = new TestDPoPProofService();
     TestHttpMessageHandler _testHttpMessageHandler = new TestHttpMessageHandler();
@@ -32,7 +32,7 @@ public class AccessTokenHandlerTests
 
             _testHttpMessageHandler.Request!.Headers.Authorization!.Scheme.ShouldBe("Bearer");
         }
-        
+
         {
             _subject.AccessToken.AccessTokenType = "dpop";
 
@@ -40,6 +40,14 @@ public class AccessTokenHandlerTests
 
             _testHttpMessageHandler.Request!.Headers.Authorization!.Scheme.ShouldBe("DPoP");
         }
+    }
+
+    public async Task Invalid_Token_Should_Fallback_To_Bearer()
+    {
+        using var client = new HttpClient(_subject);
+        _subject.AccessToken.AccessTokenType = "Application Access Token";
+        var response = await client.GetAsync("https://test/api");
+        _testHttpMessageHandler.Request!.Headers.Authorization!.Scheme.ShouldBe("Bearer");
     }
 
     public class TestHttpMessageHandler : HttpMessageHandler

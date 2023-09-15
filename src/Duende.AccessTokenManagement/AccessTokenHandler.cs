@@ -85,12 +85,14 @@ public abstract class AccessTokenHandler : DelegatingHandler
     protected virtual async Task SetTokenAsync(HttpRequestMessage request, bool forceRenewal, CancellationToken cancellationToken, string? dpopNonce = null)
     {
         var token = await GetAccessTokenAsync(forceRenewal, cancellationToken).ConfigureAwait(false);
-        
+
         if (!string.IsNullOrWhiteSpace(token?.AccessToken))
         {
             _logger.LogDebug("Sending access token in request to endpoint: {url}", request.RequestUri?.AbsoluteUri.ToString());
 
-            var scheme = token.AccessTokenType ?? AuthenticationSchemes.AuthorizationHeaderBearer;
+            var scheme = token.AccessTokenType is not null && TokenValidator.IsValidTokenType(token.AccessTokenType)
+                ? token.AccessTokenType
+                : AuthenticationSchemes.AuthorizationHeaderBearer;
 
             if (!string.IsNullOrWhiteSpace(token.DPoPJsonWebKey))
             {
